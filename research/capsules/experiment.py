@@ -107,10 +107,10 @@ def get_features(split, total_batch_size, num_gpus, data_dir, num_targets,
                 data_dir=data_dir, batch_size=batch_size, split=split,
             ))
       elif dataset == 'cifar10':
-        data_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+        dataset_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
         features.append(
             cifar10_input.inputs(
-                split=split, data_dir=data_dir, batch_size=batch_size))
+                split=split, data_dir=dataset_dir, batch_size=batch_size))
       else:
         raise ValueError(
             'Unexpected dataset {!r}, must be mnist, norb, or cifar10.'.format(
@@ -179,7 +179,10 @@ def train_experiment(session, result, writer, last_step, max_steps, saver,
   step = 0
   for i in range(last_step, max_steps):
     step += 1
+    start_anchor = time.time()
     summary, _ = session.run([result.summary, result.train_op])
+    iteration_time = time.time() - start_anchor
+    print("{0}/{1} ~ {2:.3f}".format(i, max_steps, iteration_time))
     writer.add_summary(summary, i)
     if (i + 1) % save_step == 0:
       saver.save(
